@@ -1,0 +1,38 @@
+---
+# Deployment do AirTrail
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airtrail-app-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airtrail-app
+  template:
+    metadata:
+      labels:
+        app: airtrail-app
+    spec:
+      containers:
+        - name: airtrail
+          image: johly/airtrail:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DB_URL
+              value: "postgresql://airtrail:airtrail@airtrail-db-svc:5432/airtrail"
+---
+# Service LoadBalancer (público)
+apiVersion: v1
+kind: Service
+metadata:
+  name: airtrail-app-svc
+spec:
+  selector:
+    app: airtrail-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: LoadBalancer

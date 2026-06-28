@@ -1,0 +1,32 @@
+---
+- name: Create AirTrail App resources
+  kubernetes.core.k8s:
+    state: present
+    template: 'app-resources.yml.j2'
+    namespace: 'default'
+
+- name: Wait for LoadBalancer IP
+  kubernetes.core.k8s_info:
+    kind: Service
+    name: airtrail-app-svc
+    namespace: 'default'
+  register: app_service
+  until: app_service.resources[0].status.loadBalancer.ingress[0].ip is defined
+  retries: 20
+  delay: 15
+
+- name: Update 'app_ip' in inventory
+  ansible.builtin.lineinfile:
+    path: "inventory/gcp.yml"
+    regexp: '^(\s*)app_ip:.*$'
+    line: '\1app_ip: "{{ app_service.resources[0].status.loadBalancer.ingress[0].ip }}"'
+    backrefs: true
+  delegate_to: localhost
+
+- name: Update 'app_port' in inventory
+  ansible.builtin.lineinfile:
+    path: "inventory/gcp.yml"
+    regexp: '^(\s*)app_port:.*$'
+    line: '\1app_port: "{{ app_service.resources[0].spec.ports[0].port }}"'
+    backrefs: true
+  delegate_to: localhost

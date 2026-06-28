@@ -1,0 +1,6 @@
+---
+- name: Create PostgreSQL resources (PVC, Deployment, Service)
+  kubernetes.core.k8s:
+    state: present
+    template: 'db-resources.yml.j2'
+    namespace: 'default'

@@ -1,0 +1,12 @@
+- name: Define dashboard files
+  ansible.builtin.set_fact:
+    dashboard_files:
+      - "roles/monitoring/Dashboard1.json"
+      - "roles/monitoring/Dashboard2.json"
+
+- name: Add monitoring dashboards to project
+  ansible.builtin.command: >
+    gcloud monitoring dashboards
+    --project="{{ gcp_project }}"
+    create --config-from-file="{{ playbook_dir }}/{{ item }}"
+  loop: "{{ dashboard_files }}"

@@ -1,0 +1,36 @@
+---
+- name: Undeploy AirTrail
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Delete App Resources
+      kubernetes.core.k8s:
+        state: absent
+        kind: "{{ item.kind }}"
+        name: "{{ item.name }}"
+        namespace: default
+      loop:
+        - { kind: Deployment, name: airtrail-app-deployment }
+        - { kind: Service, name: airtrail-app-svc }
+      ignore_errors: true
+
+    - name: Delete DB Resources
+      kubernetes.core.k8s:
+        state: absent
+        kind: "{{ item.kind }}"
+        name: "{{ item.name }}"
+        namespace: default
+      loop:
+        - { kind: Deployment, name: airtrail-db-deployment }
+        - { kind: Service, name: airtrail-db-svc }
+      ignore_errors: true
+
+    - name: Delete DB PVC (Optional)
+      kubernetes.core.k8s:
+        state: absent
+        kind: PersistentVolumeClaim
+        name: airtrail-db-pvc
+        namespace: default
+      when: delete_data | default(false) | bool
+      ignore_errors: true

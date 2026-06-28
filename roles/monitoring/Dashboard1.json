@@ -1,0 +1,150 @@
+{
+  "displayName": "AirTrail - Monitoring Dashboard",
+  "mosaicLayout": {
+    "columns": 48,
+    "tiles": [
+      {
+        "xPos": 0,
+        "yPos": 0,
+        "width": 24,
+        "height": 16,
+        "widget": {
+          "title": "AirTrail - CPU request utilization [MEAN]",
+          "xyChart": {
+            "dataSets": [
+              {
+                "plotType": "LINE",
+                "minAlignmentPeriod": "60s",
+                "targetAxis": "Y1",
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"kubernetes.io/container/cpu/request_utilization\" resource.type=\"k8s_container\" resource.label.\"project_id\"=\"ascn-25-26\" resource.label.\"cluster_name\"=\"ascn-cluster\" resource.label.\"namespace_name\"=\"default\" resource.label.\"container_name\"=\"airtrail\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_MEAN",
+                      "crossSeriesReducer": "REDUCE_MEAN",
+                      "groupByFields": []
+                    }
+                  }
+                }
+              }
+            ],
+            "yAxis": { "label": "", "scale": "LINEAR" },
+            "chartOptions": { "mode": "COLOR", "showLegend": false }
+          }
+        }
+      },
+      {
+        "xPos": 24,
+        "yPos": 0,
+        "width": 24,
+        "height": 16,
+        "widget": {
+          "title": "AirTrail - Memory used bytes [MEAN]",
+          "xyChart": {
+            "dataSets": [
+              {
+                "plotType": "LINE",
+                "minAlignmentPeriod": "60s",
+                "targetAxis": "Y1",
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"kubernetes.io/container/memory/used_bytes\" resource.type=\"k8s_container\" resource.label.\"project_id\"=\"ascn-25-26\" resource.label.\"cluster_name\"=\"ascn-cluster\" resource.label.\"namespace_name\"=\"default\" resource.label.\"container_name\"=\"airtrail\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_MEAN",
+                      "crossSeriesReducer": "REDUCE_MEAN",
+                      "groupByFields": []
+                    }
+                  }
+                }
+              }
+            ],
+            "yAxis": { "label": "", "scale": "LINEAR" },
+            "chartOptions": { "mode": "COLOR", "showLegend": false }
+          }
+        }
+      },
+      {
+        "xPos": 0,
+        "yPos": 16,
+        "width": 24,
+        "height": 12,
+        "widget": {
+          "title": "AirTrail - Number of replicas (containers) [COUNT]",
+          "xyChart": {
+            "dataSets": [
+              {
+                "plotType": "STACKED_BAR",
+                "minAlignmentPeriod": "60s",
+                "targetAxis": "Y1",
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"kubernetes.io/container/uptime\" resource.type=\"k8s_container\" resource.label.\"project_id\"=\"ascn-25-26\" resource.label.\"cluster_name\"=\"ascn-cluster\" resource.label.\"namespace_name\"=\"default\" resource.label.\"container_name\"=\"airtrail\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_MEAN",
+                      "crossSeriesReducer": "REDUCE_COUNT",
+                      "groupByFields": []
+                    }
+                  }
+                }
+              }
+            ],
+            "yAxis": { "label": "", "scale": "LINEAR" },
+            "chartOptions": { "mode": "COLOR", "showLegend": false }
+          }
+        }
+      },
+      {
+        "xPos": 24,
+        "yPos": 16,
+        "width": 24,
+        "height": 12,
+        "widget": {
+          "title": "GKE Nodes - Network in/out [SUM]",
+          "xyChart": {
+            "dataSets": [
+              {
+                "plotType": "LINE",
+                "minAlignmentPeriod": "60s",
+                "targetAxis": "Y1",
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"compute.googleapis.com/instance/network/received_bytes_count\" resource.type=\"gce_instance\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": []
+                    }
+                  }
+                }
+              },
+              {
+                "plotType": "LINE",
+                "minAlignmentPeriod": "60s",
+                "targetAxis": "Y1",
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "metric.type=\"compute.googleapis.com/instance/network/sent_bytes_count\" resource.type=\"gce_instance\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_RATE",
+                      "crossSeriesReducer": "REDUCE_SUM",
+                      "groupByFields": []
+                    }
+                  }
+                }
+              }
+            ],
+            "yAxis": { "label": "", "scale": "LINEAR" },
+            "chartOptions": { "mode": "COLOR", "showLegend": false }
+          }
+        }
+      }
+    ]
+  },
+  "dashboardFilters": [],
+  "labels": {}
+}

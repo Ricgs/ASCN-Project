@@ -1,0 +1,94 @@
+- name: Define benchmark files
+  ansible.builtin.set_fact:
+    benchmark_files:
+      - "roles/benchmarking/Benchmark1.jmx"
+
+- name: Ensure logs directory exists
+  ansible.builtin.file:
+    path: "{{ playbook_dir }}/roles/benchmarking/logs"
+    state: directory
+    recurse: true
+
+- name: Get AirTrail Service external IP
+  ansible.builtin.command: >
+    kubectl get svc airtrail-app-svc -n default -o jsonpath={.status.loadBalancer.ingress[0].ip}
+  register: airtrail_svc_ip
+  changed_when: false
+
+- name: Fail if Service does not have an external IP yet
+  ansible.builtin.fail:
+    msg: "airtrail-app-svc still has no EXTERNAL-IP. Wait a bit and retry."
+  when: airtrail_svc_ip.stdout | length == 0
+
+- name: Override app_ip with Service external IP
+  ansible.builtin.set_fact:
+    app_ip: "{{ airtrail_svc_ip.stdout }}"
+
+- name: Alter the app ip/domain in the benchmarking .jmx file
+  ansible.builtin.replace:
+    path: "{{ playbook_dir }}/{{ benchmark_files[0] }}"
+    regexp: '(.*)<stringProp name="HTTPSampler.domain">.*'
+    replace: '\1<stringProp name="HTTPSampler.domain">{{ app_ip }}</stringProp>'
+
+- name: Alter the app port in the benchmarking .jmx file
+  ansible.builtin.replace:
+    path: "{{ playbook_dir }}/{{ benchmark_files[0] }}"
+    regexp: '(.*)<stringProp name="HTTPSampler.port">.*'
+    replace: '\1<stringProp name="HTTPSampler.port">{{ app_port }}</stringProp>'
+
+- name: Update thread count in the JMeter test plan
+  ansible.builtin.replace:
+    path: "{{ playbook_dir }}/{{ benchmark_files[0] }}"
+    regexp: '<stringProp name="ThreadGroup.num_threads">.*</stringProp>'
+    replace: '<stringProp name="ThreadGroup.num_threads">{{ num_threads }}</stringProp>'
+
+- name: Verify updated file
+  ansible.builtin.debug:
+    msg: "Updated {{ benchmark_files[0] }} with {{ app_ip }}:{{ app_port }} and {{ num_threads }} threads"
+
+# Java
+- name: Check if Java is installed
+  ansible.builtin.command: java --version
+  ignore_errors: true
+  register: java_check
+  changed_when: false
+
+- name: Update package manager cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: yes
+  when: java_check.rc != 0
+
+- name: Install Java
+  ansible.builtin.apt:
+    name: openjdk-11-jre
+    state: present
+  become: yes
+  when: java_check.rc != 0
+
+# JMeter
+- name: Download JMeter Binaries (version 5.6.3)
+  ansible.builtin.get_url:
+    url: "https://dlcdn.apache.org/jmeter/binaries/apache-jmeter-5.6.3.tgz"
+    dest: "{{ ansible_env.HOME }}/apache-jmeter-5.6.3.tgz"
+    mode: "0644"
+
+- name: Unzip JMeter Binaries
+  ansible.builtin.unarchive:
+    src: "{{ ansible_env.HOME }}/apache-jmeter-5.6.3.tgz"
+    dest: "{{ ansible_env.HOME }}/"
+    remote_src: yes
+    creates: "{{ ansible_env.HOME }}/apache-jmeter-5.6.3/bin/jmeter"
+
+# Logs + Run
+- name: Get current date and time for the benchmarking logs
+  ansible.builtin.set_fact:
+    date_time: "{{ lookup('pipe', 'date +%Y-%m-%d_%H-%M-%S') }}"
+
+- name: Run Benchmark 1
+  ansible.builtin.command: >
+    {{ ansible_env.HOME }}/apache-jmeter-5.6.3/bin/jmeter
+    -n
+    -t {{ playbook_dir }}/roles/benchmarking/Benchmark1.jmx
+    -l {{ playbook_dir }}/roles/benchmarking/logs/Benchmark1_{{ date_time }}.jtl
+  changed_when: false

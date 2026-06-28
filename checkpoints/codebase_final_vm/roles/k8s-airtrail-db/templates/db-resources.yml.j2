@@ -1,0 +1,63 @@
+---
+# PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: airtrail-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Deployment do PostgreSQL
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airtrail-db-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airtrail-db
+  template:
+    metadata:
+      labels:
+        app: airtrail-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          env:
+            - name: POSTGRES_DB
+              value: "airtrail"
+            - name: POSTGRES_USER
+              value: "airtrail"
+            - name: POSTGRES_PASSWORD
+              value: "airtrail"
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: "/var/lib/postgresql/data"
+              name: airtrail-db-storage
+      volumes:
+        - name: airtrail-db-storage
+          persistentVolumeClaim:
+            claimName: airtrail-db-pvc
+---
+# Service ClusterIP (interno)
+apiVersion: v1
+kind: Service
+metadata:
+  name: airtrail-db-svc
+spec:
+  selector:
+    app: airtrail-db
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP

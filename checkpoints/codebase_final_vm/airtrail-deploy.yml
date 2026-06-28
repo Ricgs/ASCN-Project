@@ -1,0 +1,15 @@
+---
+# Playbook to deploy Airtrail and its components
+# TO DO
+
+- name: Deploy AirTrail Database
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - k8s-airtrail-db
+
+- name: Deploy AirTrail Application
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - k8s-airtrail-app
